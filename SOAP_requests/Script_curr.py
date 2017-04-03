@@ -9,6 +9,7 @@ def convert_curr(value, from_unit, to_unit):
         toCurrency = to_unit,
         rounding = True)
     response = client.service.ConvertToNum(**dist_params)
+    print(response)
     return response
 
 
