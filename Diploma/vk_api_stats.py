@@ -51,8 +51,6 @@ class Person(object):
         self.linked_users = united_list
         return united_list
 
-
-
     def get_groups(self):
         counter = 0
         number_persons = len(self.linked_users)
