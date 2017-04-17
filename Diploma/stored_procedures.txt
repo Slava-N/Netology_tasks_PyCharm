@@ -16,4 +16,25 @@ while (i < persons.length)
 return group_list;
 
 
-# get25persons
+# stored procedure #2 get persons
+var group_id = (Args.group_id);
+var people_list = [];
+var persons_in_group = API.groups.getMembers(
+    {"group_id":group_id,
+     "count":"1000",
+     "fields":"sex,bdate",
+     "offset":Args.offset
+    });
+
+var i = 0;
+while (i < 20)
+{var persons_in_group = API.groups.getMembers(
+    {"group_id":group_id,
+     "count":"1000",
+     "fields":"sex,bdate",
+     "offset":Args.offset+i*1000
+    });
+    i=i+1;
+    people_list.push(persons_in_group.items);
+};
+return people_list;
