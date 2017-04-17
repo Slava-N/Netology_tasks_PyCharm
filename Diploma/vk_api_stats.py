@@ -6,7 +6,6 @@ import json
 from pprint import pprint
 from collections import Counter
 
-
 class Person(object):
     def __init__(self, person_id):
         self.id = person_id
@@ -37,6 +36,7 @@ class Person(object):
             offset += 1000
             number_of_followers_left -= 1000
             sleep(0.34)
+            print(response_followers)
             followers_list.extend(response_followers['response']['items'])
             print('Подгружается информация о подписчиках, осталось:', number_of_followers_left + 1000)
         print(len(followers_list))
@@ -51,30 +51,48 @@ class Person(object):
         self.linked_users = united_list
         return united_list
 
+
+
     def get_groups(self):
-        counter = 1
+        counter = 0
         number_persons = len(self.linked_users)
-        url_groups = 'https://api.vk.com/method/groups.get'
+        # url_groups = 'https://api.vk.com/method/groups.get'
         groups_count = Counter()
-        for each in self.linked_users:
-            print('Идет обработка запроса: {0}/{1}. Номер пользователя: {2}'.format(counter, number_persons, each))
-            counter += 1
-            response_groups = requests.get(url_groups,
-                                           dict(uid=each, fields='name', access_token=config.access_token)).json()
-            try:
-                groups_count += (Counter(response_groups['response']))
-                sleep(0.34)
-            except:
-                print(response_groups)
-                print('#', counter, 'out of', number_persons, each, 'something is wrong here. Moving on...\n')
-                sleep(0.34)
-        pprint('Всего групп: {0}.'.format(len(groups_count)))
+        n = 20
+        persons_grouped = [self.linked_users[i:i + n] for i in range(0, len(self.linked_users), n)]
+        raw_groups_list = []
+
+        for each in persons_grouped:
+            list_to_load = [str(x) for x in each]
+            str_to_load=','.join(list_to_load)
+            print('Идет обработка запроса: {0}-{2} из {1}.'.format(counter, number_persons, counter + 20))
+            counter += 20
+
+            data = dict(person_list=str_to_load, access_token=config.access_token, v='5.63')
+            # reference to stored procedure #1
+            r = requests.get('https://api.vk.com/method/execute.get25gr', params=data)
+            sleep(0.34)
+            pprint(r.json())
+            for every in r.json()['response']:
+                try:
+                    raw_groups_list.extend(every)
+                except:
+                    continue
+        print(raw_groups_list)
+        pprint('Всего групп: {0}.'.format(len(raw_groups_list)))
+
+        groups_count=Counter(raw_groups_list)
         self.groups_count = groups_count
+
+        print(groups_count)
+        print(type(groups_count))
+
 
         with open('all_groups.json', 'w') as file:
             json.dump(groups_count, file, indent=2)
-
         return groups_count
+
+
 
     def form_list_of_groups(self):
         groups = self.groups_count
@@ -101,7 +119,11 @@ class Person(object):
             json.dump(top_100_list, file, indent=2)
         return top_100_list
 
-celebrity = Person(input('Пожалуйста, введите ID интересующего человека:\n'))
+# celebrity = Person(input('Пожалуйста, введите ID интересующего человека:\n'))
+# 292058
+# 1894631
+# 133862729
+celebrity = Person('1946565')
 celebrity.unite_linked_users()
 celebrity.get_groups()
 celebrity.form_list_of_groups()
